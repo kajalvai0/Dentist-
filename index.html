@@ -1182,83 +1182,148 @@
     </footer>
 
     <script>
-        // Mobile Menu Toggle
-        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
-        const navMenu = document.querySelector('.nav-menu');
-        
-        mobileMenuBtn.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
+        // SheetDB API Configuration
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/YOUR_SHEETDB_ID_HERE';
+
+// Form Submission with SheetDB
+const appointmentForm = document.getElementById('appointmentForm');
+const submitBtn = document.getElementById('submitBtn');
+const submitText = document.getElementById('submitText');
+const loadingSpinner = document.getElementById('loadingSpinner');
+const formMessage = document.getElementById('formMessage');
+
+appointmentForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    // Show loading state
+    submitText.style.display = 'none';
+    loadingSpinner.style.display = 'block';
+    submitBtn.disabled = true;
+    formMessage.style.display = 'none';
+    
+    // Get form data
+    const formData = {
+        data: {
+            Timestamp: new Date().toISOString(),
+            Name: document.getElementById('name').value,
+            Phone: document.getElementById('phone').value,
+            Email: document.getElementById('email').value || 'Not provided',
+            Service: document.getElementById('service').value,
+            PreferredDate: document.getElementById('preferred_date').value || 'Not specified',
+            PreferredTime: document.getElementById('preferred_time').value || 'Not specified',
+            Message: document.getElementById('message').value || 'No message',
+            Status: 'Pending'
+        }
+    };
+    
+    try {
+        const response = await fetch(SHEETDB_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
         });
         
-        // Technology Slider
-        const techSlides = document.querySelector('.tech-slides');
-        const techPrev = document.querySelector('.tech-prev');
-        const techNext = document.querySelector('.tech-next');
-        let techSlideIndex = 0;
+        const result = await response.json();
         
-        techNext.addEventListener('click', () => {
-            techSlideIndex = (techSlideIndex >= 2) ? 0 : techSlideIndex + 1;
-            techSlides.style.transform = `translateX(-${techSlideIndex * 100}%)`;
-        });
-        
-        techPrev.addEventListener('click', () => {
-            techSlideIndex = (techSlideIndex <= 0) ? 2 : techSlideIndex - 1;
-            techSlides.style.transform = `translateX(-${techSlideIndex * 100}%)`;
-        });
-        
-        // Testimonial Slider
-        const testimonialSlides = document.querySelector('.testimonial-slides');
-        const testimonialDots = document.querySelectorAll('.testimonial-dot');
-        let testimonialSlideIndex = 0;
-        
-        testimonialDots.forEach((dot, index) => {
-            dot.addEventListener('click', () => {
-                testimonialSlideIndex = index;
-                testimonialSlides.style.transform = `translateX(-${testimonialSlideIndex * 100}%)`;
-                
-                testimonialDots.forEach(d => d.classList.remove('active'));
-                dot.classList.add('active');
-            });
-        });
-        
-        // Auto slide for testimonials
-        setInterval(() => {
-            testimonialSlideIndex = (testimonialSlideIndex >= 2) ? 0 : testimonialSlideIndex + 1;
-            testimonialSlides.style.transform = `translateX(-${testimonialSlideIndex * 100}%)`;
-            
-            testimonialDots.forEach(d => d.classList.remove('active'));
-            testimonialDots[testimonialSlideIndex].classList.add('active');
-        }, 5000);
-        
-        // Form Submission
-        const appointmentForm = document.getElementById('appointmentForm');
-        
-        appointmentForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Thank you for your appointment request. We will contact you shortly to confirm your appointment.');
+        if (response.ok && result.created > 0) {
+            showMessage('Thank you! Your appointment request has been submitted successfully. We will contact you shortly to confirm.', 'success');
             appointmentForm.reset();
-        });
+        } else {
+            throw new Error('Failed to submit appointment');
+        }
+    } catch (error) {
+        console.error('Error submitting form:', error);
+        showMessage('Sorry, there was an error submitting your appointment request. Please try again or call us directly at 01744-273225.', 'error');
+    } finally {
+        // Reset button state
+        submitText.style.display = 'block';
+        loadingSpinner.style.display = 'none';
+        submitBtn.disabled = false;
+    }
+});
+
+function showMessage(message, type) {
+    formMessage.textContent = message;
+    formMessage.style.display = 'block';
+    formMessage.style.color = type === 'success' ? '#34a853' : '#ea4335';
+    formMessage.style.padding = '10px';
+    formMessage.style.borderRadius = '5px';
+    formMessage.style.backgroundColor = type === 'success' ? '#e6f4ea' : '#fce8e6';
+    formMessage.style.border = `1px solid ${type === 'success' ? '#34a853' : '#ea4335'}`;
+}
+
+// Admin Panel to View Appointments (Add this as a separate page or section)
+function createAdminPanel() {
+    // This would be a separate admin page to view appointments
+    // You can access it via: yourwebsite.com/admin.html
+    const adminHTML = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Appointment Admin - Specialised Dental Care</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+            th { background-color: #f2f2f2; }
+            .pending { background-color: #fff3cd; }
+            .confirmed { background-color: #d1ecf1; }
+            .completed { background-color: #d4edda; }
+        </style>
+    </head>
+    <body>
+        <h1>Appointment Management</h1>
+        <div id="appointmentsList"></div>
         
-        // Smooth Scrolling for Navigation Links
-        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-            anchor.addEventListener('click', function (e) {
-                e.preventDefault();
-                
-                const targetId = this.getAttribute('href');
-                if(targetId === '#') return;
-                
-                const targetElement = document.querySelector(targetId);
-                if(targetElement) {
-                    window.scrollTo({
-                        top: targetElement.offsetTop - 100,
-                        behavior: 'smooth'
+        <script>
+            async function loadAppointments() {
+                try {
+                    const response = await fetch('${SHEETDB_API_URL}?sort_by=Timestamp&sort_order=desc');
+                    const appointments = await response.json();
+                    
+                    let html = '<table>';
+                    html += '<tr><th>Date</th><th>Name</th><th>Phone</th><th>Service</th><th>Status</th><th>Actions</th></tr>';
+                    
+                    appointments.forEach(apt => {
+                        html += \`<tr class="\${apt.Status?.toLowerCase()}">
+                            <td>\${new Date(apt.Timestamp).toLocaleDateString()}</td>
+                            <td>\${apt.Name}</td>
+                            <td>\${apt.Phone}</td>
+                            <td>\${apt.Service}</td>
+                            <td>\${apt.Status || 'Pending'}</td>
+                            <td>
+                                <button onclick="updateStatus('\${apt.id}', 'Confirmed')">Confirm</button>
+                                <button onclick="updateStatus('\${apt.id}', 'Completed')">Complete</button>
+                            </td>
+                        </tr>\`;
                     });
                     
-                    // Close mobile menu if open
-                    navMenu.classList.remove('active');
+                    html += '</table>';
+                    document.getElementById('appointmentsList').innerHTML = html;
+                } catch (error) {
+                    console.error('Error loading appointments:', error);
                 }
-            });
-        });
-    </script>
-</body>
-</html>
+            }
+            
+            async function updateStatus(id, status) {
+                try {
+                    await fetch(\`${SHEETDB_API_URL}/id/\${id}\`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ data: { Status: status } })
+                    });
+                    loadAppointments();
+                } catch (error) {
+                    console.error('Error updating status:', error);
+                }
+            }
+            
+            loadAppointments();
+        </script>
+    </body>
+    </html>
+    `;
+    return adminHTML;
+}
