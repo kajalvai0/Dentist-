@@ -1183,7 +1183,7 @@
 
     <script>
         // SheetDB API Configuration
-const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/YOUR_SHEETDB_ID_HERE';
+const SHEETDB_API_URL = 'https://sheetdb.io/api/v1/kg7tqduzfuxt9';
 
 // Form Submission with SheetDB
 const appointmentForm = document.getElementById('appointmentForm');
@@ -1217,7 +1217,7 @@ appointmentForm.addEventListener('submit', async (e) => {
     };
     
     try {
-        const response = await fetch(SHEETDB_API_URL, {
+        const response = await fetch(https://sheetdb.io/api/v1/kg7tqduzfuxt9, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -1309,7 +1309,7 @@ function createAdminPanel() {
             
             async function updateStatus(id, status) {
                 try {
-                    await fetch(\`${SHEETDB_API_URL}/id/\${id}\`, {
+                    await fetch(\`${https://sheetdb.io/api/v1/kg7tqduzfuxt9}/id/\${id}\`, {
                         method: 'PATCH',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ data: { Status: status } })
@@ -1324,6 +1324,3 @@ function createAdminPanel() {
         </script>
     </body>
     </html>
-    `;
-    return adminHTML;
-}
